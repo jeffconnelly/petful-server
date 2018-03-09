@@ -6,7 +6,9 @@ const morgan = require('morgan');
 
 const {PORT, CLIENT_ORIGIN} = require('./config');
 const {dbConnect} = require('./db-mongoose');
+const {Queue} = require('./Queue');
 // const {dbConnect} = require('./db-knex');
+
 
 const app = express();
 
@@ -22,63 +24,7 @@ app.use(
   })
 );
 
-//Queue Node and Class
-
-class _Node{
-  constructor(value) {
-    this.value=value,
-    this.next=null,
-    this.prev=null;
-  }
-}
-
-class Queue {
-  constructor(){
-    this.first = null;
-    this.last = null;
-  }
-
-  enqueue(data) {
-    const node = new _Node(data);
-
-    if (this.first === null) {
-      this.first = node;
-    }
-    if (this.last) {
-      node.next = this.last;
-      this.last.prev = node;
-    }
-    this.last = node;
-  }
-
-  dequeue() {
-    if (this.first === null) {
-      return;
-    }
-
-    const node = this.first;
-    this.first = node.prev;
-
-    if (node === this.last) {
-      this.last = null;
-    }
-    return node.value; 
-  }
-
-  dump() {
-    for (let node = this.first; node; node = node.prev) console.log(node.value);
-
-    console.log('---');
-
-    for (let node = this.last; node; node = node.next) 
-      console.log(node.value);
-  }
-
-  peek() {
-    return this.first;
-  }
-}
-
+//Create Pet Queues
 const main = () => {
   const catQueue = new Queue();
   const dogQueue = new Queue();
@@ -138,7 +84,6 @@ const main = () => {
     });
   console.log(catQueue.peek().value);
 
-
 //Pet endpoints
 app.get('/api/cat', (req, res) => {
   return res.json(catQueue.peek().value);
@@ -157,8 +102,8 @@ app.delete('/api/dog', (req, res) => {
   dogQueue.dequeue();
   res.status(204).end();
 });
-
 };
+
 main();
 
 
